@@ -18,6 +18,11 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rails", "~> 4.2.0"
   s.add_dependency 'coffee-script', '~> 2.3.0'
+  s.add_dependency 'bootstrap-sass', '~> 3.3.3'
+  s.add_dependency 'sass-rails', '>= 3.2'
+  s.add_dependency "therubyracer"
+  s.add_dependency "less-rails"
+  s.add_dependency "twitter-bootstrap-rails"
 
   s.add_development_dependency "mysql2"
   s.add_development_dependency "rspec-rails", "~> 2.12.2"
