@@ -1,3 +1,6 @@
+require 'coffee_script'
+require 'jquery-rails'
+
 module Docker
   class Engine < ::Rails::Engine
     isolate_namespace Docker
