@@ -1,36 +1,77 @@
 class window.Docker
-  constructor: (container) ->
-    @container = container
-    $(@container).prepend(this.dockHtml())
-    this.slideInit()
+  constructor: (@container, options) ->
+    @settings = $.extend({}, $.fn.dock.defaults, options)
+    $(@container).prepend(@dockHtml())
+    @slideInit()
+    @tabCollapseInit()
+    @tabGetInit()
 
   dockHtml: ->
-    '<div class="slideout-menu">
-      <h3>Menu <a href="#" class="slideout-menu-toggle">×</a></h3>
-      <ul>
-        <li><a href="#">Home <i class="fa fa-angle-right"></i></a></li>
-        <li><a href="#">Tour Information <i class="fa fa-angle-right"></i></a></li>
-        <li><a href="#">Tour Pricing <i class="fa fa-angle-right"></i></a></li>
-        <li><a href="#">Photo Gallery <i class="fa fa-angle-right"></i></a></li>
-        <li><a href="#">News & Events <i class="fa fa-angle-right"></i></a></li>
-      </ul>
+    "<div class=\"slideout-menu\">
+      <h3>#{@settings.title} <a href=\"#\" class=\"slideout-menu-toggle\">×</a></h3>
+      #{@tabHtml()}
     </div>
-    <button class="slideout-menu-toggle"></button>'
+    <button class=\"slideout-menu-toggle\">Dock And Load</button>"
+
+  tabHtml: ->
+    tabHtml = ''
+    self = this
+    $.each @settings.tabs, (i, tab) ->
+      tabHtml += "
+      <div id=\"dock-tab-content-title-#{tab.title}\" class=\"page_collapsible collapse-close\" data-tab=\"#{tab.title}\">#{tab.title}<span></span></div>
+      #{self.tabHtmlContent(tab)}
+      "
+    tabHtml
+
+  tabHtmlContent: (tab) ->
+    if tab.action == 'get'
+      "
+      <div id=\"dock-tab-content-#{tab.title}\" class=\"container dock-tab-get-contents\">
+        <div class=\"content\" style=\"display: none;\">
+          <div data-url=\"#{tab.url}\" data-field-names=\"#{tab.fieldNames.join('|')}\" data-format=\"#{tab.format}\">
+          </div>
+        </div>
+      </div>
+      "
+    # else if tab.action == 'post'
+
+  tabCollapseInit: ->
+    @slideMenu().on 'click', "[id^=dock-tab-content-title]", ->
+      if $(@).hasClass('collapse-close')
+        $(@).removeClass('collapse-close')
+        $(@).addClass('collapse-open')
+        $("#dock-tab-content-#{$(@).data('tab')} > .content").fadeIn()
+      else
+        $(@).removeClass('collapse-open')
+        $(@).addClass('collapse-close')
+        $("#dock-tab-content-#{$(@).data('tab')} > .content").fadeOut()
+
+  tabGetInit: ->
+    $.each @slideMenu().find('.dock-tab-get-contents > .content > div'), ->
+      self = this
+      fieldNames = $(@).data('fieldNames').split('|')
+      format = $(@).data('format')
+      $.get $(@).data('url'), (result) ->
+        $.each result, (i, res) ->
+          dataAppend = format
+          $.each fieldNames, (i, name) ->
+            dataAppend = dataAppend.replace("%#{i}", res[name]);
+          $(self).append(dataAppend)
 
   slideMenu: ->
     $('.slideout-menu')
 
   isOpen: ->
-    this.slideMenu().hasClass('open')
+    @slideMenu().hasClass('open')
 
   slideOpen: ->
-    this.slideMenu().addClass("open")
-    this.slideMenu().animate
+    @slideMenu().addClass("open")
+    @slideMenu().animate
       left: "0px"
 
   slideClose: ->
-    this.slideMenu().removeClass("open")
-    this.slideMenu().animate({ left: -this.slideMenu().width() }, 250)
+    @slideMenu().removeClass("open")
+    @slideMenu().animate({ left: -@slideMenu().width() }, 250)
 
   slideInit: ->
     self = this
@@ -82,8 +123,10 @@ class window.Docker
 #     values
 
 jQuery ->
-  $.fn.extend {
-    dock: () ->
+  $.fn.extend
+    dock: (options) ->
       this.each ->
-        new Docker(this)
-  }
+        new Docker(this, options)
+  $.fn.dock.defaults =
+    title: 'Dock &amp; Load Sidebar',
+    tabs: []

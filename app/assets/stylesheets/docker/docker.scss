@@ -1,3 +1,6 @@
+/*
+Slidout menu
+*/
 .main-dock {
   display: none;
 }
@@ -62,4 +65,66 @@
   top: 15px;
   right: 10px;
   opacity: .5;
+}
+
+
+
+
+
+
+/*
+Collapse tabs
+*/
+
+.collapsible, .page_collapsible {
+  margin: 0;
+  padding: 10px;
+  height: 20px;
+  background: #cccccc;
+  font-family: Arial, Helvetica, sans-serif;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: #000;
+  font-size: 1em;
+}
+
+.dock-tab-get-contents, .dock-tab-post-contents {
+  padding: 0;
+  margin: 0;
+  .container {
+    overflow: hidden;
+  }
+  .content {
+    background: #f0f0f0;
+    margin: 0;
+    padding: 10px;
+    font-size: .9em;
+    line-height: 1.5em;
+    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+
+    overflow: auto;
+    min-height: 10%;
+    max-height: 50%;
+    position: absolute;
+  }
+}
+
+.collapse-open {
+    background: #000;
+    color: #fff;
+    span {
+      display: block;
+      float: right;
+      padding: 10px;
+      background: image-url('docker/minus-white.png') center center no-repeat;
+      background-size: contain;
+    }
+}
+
+.collapse-close span {
+    display: block;
+    float: right;
+    background: image-url('docker/plus.ico') center center no-repeat;
+    background-size: contain;
+    padding: 10px;
 }
