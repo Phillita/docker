@@ -5,6 +5,7 @@ class window.Docker
     @slideInit()
     @tabCollapseInit()
     @tabGetInit()
+    @tabGetSearchInit()
 
   dockHtml: ->
     "<div class=\"slideout-menu\">
@@ -28,6 +29,7 @@ class window.Docker
       "
       <div id=\"dock-tab-content-#{tab.title}\" class=\"container dock-tab-get-contents\">
         <div class=\"content\" style=\"display: none;\">
+          <input type=\"text\" name=\"search\" class=\"dock-tab-content-search\" placeholder=\"Search\" style=\"width: 100%;\">
           <div data-url=\"#{tab.url}\" data-field-names=\"#{tab.fieldNames.join('|')}\" data-format=\"#{tab.format}\">
           </div>
         </div>
@@ -57,6 +59,12 @@ class window.Docker
           $.each fieldNames, (i, name) ->
             dataAppend = dataAppend.replace("%#{i}", res[name]);
           $(self).append(dataAppend)
+
+  tabGetSearchInit: ->
+    @slideMenu().on 'keyup', '.dock-tab-content-search', ->
+      query = $(@).val()
+      $(@).siblings('div').children().show()
+      $(@).siblings('div').children().not(":contains('#{query}')").hide()
 
   slideMenu: ->
     $('.slideout-menu')
