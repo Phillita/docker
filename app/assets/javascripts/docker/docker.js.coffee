@@ -1,14 +1,100 @@
+class window.DockerTab
+  constructor: (@settings, @id) ->
+
+  title: ->
+    @settings.title
+
+  action: ->
+    @settings.action
+
+  url: ->
+    @settings.url
+
+  fieldNames: ->
+    @settings.fieldNames
+
+  format: ->
+    @settings.format
+
+  init: ->
+    @collapseInit()
+    if @action() == 'get'
+      @getContent()
+      @initSearch()
+
+  getContent: ->
+    self = @
+    $.get @url(), (result) ->
+      $.each result, (i, res) ->
+        dataAppend = self.format()
+        $.each self.fieldNames(), (i, name) ->
+          dataAppend = dataAppend.replace("%#{i}", res[name]);
+        self.contents().append(dataAppend)
+
+  initSearch: ->
+    @searchInput().on 'keyup', ->
+      query = $(@).val()
+      $(@).siblings('div').children().show()
+      $(@).siblings('div').children().not(":contains('#{query}')").hide()
+
+  collapseInit: ->
+    self = @
+    @headerDiv().on 'click', ->
+      if $(@).hasClass('collapse-close')
+        $(@).removeClass('collapse-close')
+        $(@).addClass('collapse-open')
+        self.contentDiv().fadeIn()
+      else
+        $(@).removeClass('collapse-open')
+        $(@).addClass('collapse-close')
+        self.contentDiv().fadeOut()
+
+  headerDiv: ->
+    $("#dock-tab-content-title-#{@id}")
+
+  contents: ->
+    $("#dock-tab-content-#{@id} > .content > div")
+
+  contentDiv: ->
+    $("#dock-tab-content-#{@id} > .content")
+
+  searchInput: ->
+    $("#dock-tab-content-#{@id} > .content > input")
+
+  headerHtml: ->
+    "<div id=\"dock-tab-content-title-#{@id}\" class=\"page_collapsible collapse-close\" data-tab=\"#{@id}\">#{@title()}<span></span></div>"
+
+  getHtml: ->
+    "<div id=\"dock-tab-content-#{@id}\" class=\"container dock-tab-get-contents\">
+      <div class=\"content\" style=\"display: none;\">
+        <input type=\"text\" name=\"search\" class=\"dock-tab-content-search\" placeholder=\"Search\" style=\"width: 100%;\">
+        <div data-tab=\"#{@id}\">
+        </div>
+      </div>
+    </div>"
+
+  contentHtml: ->
+    if @action() == 'get'
+      @getHtml()
+    # else if tab.action == 'post'
+
 class window.Docker
   constructor: (@container, options) ->
     @settings = $.extend({}, $.fn.dock.defaults, options)
+    @tabs = []
+    self = @
+    $.each @settings.tabs, (i, options) ->
+      self.tabs.push(new DockerTab(options, i))
+
     $(@container).prepend(@dockHtml())
     @slideInit()
-    @tabCollapseInit()
-    @tabGetInit()
-    @tabGetSearchInit()
+    @initTabs()
 
   dockHtml: ->
     "<div class=\"slideout-menu\">
+      <div class=\"slideout-menu-inner\">
+        <span></span>
+      </div>
       <h3>#{@settings.title} <a href=\"#\" class=\"slideout-menu-toggle\">×</a></h3>
       #{@tabHtml()}
     </div>
@@ -17,54 +103,13 @@ class window.Docker
   tabHtml: ->
     tabHtml = ''
     self = this
-    $.each @settings.tabs, (i, tab) ->
-      tabHtml += "
-      <div id=\"dock-tab-content-title-#{tab.title}\" class=\"page_collapsible collapse-close\" data-tab=\"#{tab.title}\">#{tab.title}<span></span></div>
-      #{self.tabHtmlContent(tab)}
-      "
+    $.each @tabs, (i, tab) ->
+      tabHtml += "#{tab.headerHtml()}#{tab.contentHtml()}"
     tabHtml
 
-  tabHtmlContent: (tab) ->
-    if tab.action == 'get'
-      "
-      <div id=\"dock-tab-content-#{tab.title}\" class=\"container dock-tab-get-contents\">
-        <div class=\"content\" style=\"display: none;\">
-          <input type=\"text\" name=\"search\" class=\"dock-tab-content-search\" placeholder=\"Search\" style=\"width: 100%;\">
-          <div data-url=\"#{tab.url}\" data-field-names=\"#{tab.fieldNames.join('|')}\" data-format=\"#{tab.format}\">
-          </div>
-        </div>
-      </div>
-      "
-    # else if tab.action == 'post'
-
-  tabCollapseInit: ->
-    @slideMenu().on 'click', "[id^=dock-tab-content-title]", ->
-      if $(@).hasClass('collapse-close')
-        $(@).removeClass('collapse-close')
-        $(@).addClass('collapse-open')
-        $("#dock-tab-content-#{$(@).data('tab')} > .content").fadeIn()
-      else
-        $(@).removeClass('collapse-open')
-        $(@).addClass('collapse-close')
-        $("#dock-tab-content-#{$(@).data('tab')} > .content").fadeOut()
-
-  tabGetInit: ->
-    $.each @slideMenu().find('.dock-tab-get-contents > .content > div'), ->
-      self = this
-      fieldNames = $(@).data('fieldNames').split('|')
-      format = $(@).data('format')
-      $.get $(@).data('url'), (result) ->
-        $.each result, (i, res) ->
-          dataAppend = format
-          $.each fieldNames, (i, name) ->
-            dataAppend = dataAppend.replace("%#{i}", res[name]);
-          $(self).append(dataAppend)
-
-  tabGetSearchInit: ->
-    @slideMenu().on 'keyup', '.dock-tab-content-search', ->
-      query = $(@).val()
-      $(@).siblings('div').children().show()
-      $(@).siblings('div').children().not(":contains('#{query}')").hide()
+  initTabs: ->
+    $.each @tabs, (i, tab) ->
+      tab.init()
 
   slideMenu: ->
     $('.slideout-menu')
@@ -90,45 +135,6 @@ class window.Docker
         self.slideOpen()
       else
         self.slideClose()
-
-
-
-
-# $(function() {
-#   $('#nav').stop().animate({'marginRight':'-100px'},1000);
-
-# function toggleDivs() {
-#     var $inner = $("#nav");
-#     if ($inner.position().right == "-100px") {
-#         $inner.animate({right: 0});
-#     $(".nav-btn").html('<img src="images/slide-out.png" alt="open" />')
-#     }
-#     else {
-#         $inner.animate({right: "100px"});
-#     $(".nav-btn").html('<img src="images/slide-out.png" alt="close" />')
-#     }
-# }
-# $(".nav-btn").bind("click", function(){
-#     toggleDivs();
-# });
-
-# });
-
-# class window.MultiSelectCondition extends Condition
-#   constructor: (@container) ->
-#     super
-#     self = this
-#     self.isConditionMet(self.getValue(self.container))
-#     if self.viewType() == 'check'
-#       $(this.container).find("input[type=checkbox]").each ->
-#         $(this).on 'change', (e) ->
-#           self.isConditionMet(self.getValue(self.container))
-
-#   getValue: (target_container) ->
-#     values = []
-#     $(target_container).find("input:checked").each (e) ->
-#       values.push($(this).parentsUntil('div', 'label').text().trim())
-#     values
 
 jQuery ->
   $.fn.extend
