@@ -93,12 +93,11 @@ class window.Docker
   dockHtml: ->
     "<div class=\"slideout-menu\">
       <div class=\"slideout-menu-inner\">
-        <span></span>
+        <span class=\"slideout-menu-toggle\"></span>
       </div>
-      <h3>#{@settings.title} <a href=\"#\" class=\"slideout-menu-toggle\">×</a></h3>
+      <h3>#{@settings.title}</h3>
       #{@tabHtml()}
-    </div>
-    <button class=\"slideout-menu-toggle\">Dock And Load</button>"
+    </div>"
 
   tabHtml: ->
     tabHtml = ''
