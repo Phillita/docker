@@ -7,14 +7,16 @@ jQuery ->
         action: 'get',
         url: 'https://restcountries.eu/rest/v1/all',
         fieldNames: ['name'],
-        format: '<p>%0</p>'
+        format: '<p>%0</p>',
+        searchEnabled: true
       },
       {
         title: 'Second',
         action: 'get',
         url: 'https://restcountries.eu/rest/v1/all',
         fieldNames: ['name', 'capital'],
-        format: '<p>Country: %0 <br>Capital: %1</p>'
+        format: '<p>Country: %0 <br>Capital: %1</p>',
+        searchEnabled: false
       }
     ]
   )

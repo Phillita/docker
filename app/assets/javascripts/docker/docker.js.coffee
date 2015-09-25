@@ -1,5 +1,6 @@
 class window.DockerTab
-  constructor: (@settings, @id) ->
+  constructor: (options, @id) ->
+    @settings = $.extend({}, $.fn.dock.tabDefaults, options)
 
   title: ->
     @settings.title
@@ -17,7 +18,6 @@ class window.DockerTab
     @settings.format
 
   init: ->
-    @collapseInit()
     if @action() == 'get'
       @getContent()
       @initSearch()
@@ -32,45 +32,31 @@ class window.DockerTab
         self.contents().append(dataAppend)
 
   initSearch: ->
-    @searchInput().on 'keyup', ->
-      query = $(@).val()
-      $(@).siblings('div').children().show()
-      $(@).siblings('div').children().not(":contains('#{query}')").hide()
-
-  collapseInit: ->
-    self = @
-    @headerDiv().on 'click', ->
-      if $(@).hasClass('collapse-close')
-        $(@).removeClass('collapse-close')
-        $(@).addClass('collapse-open')
-        self.contentDiv().fadeIn()
-      else
-        $(@).removeClass('collapse-open')
-        $(@).addClass('collapse-close')
-        self.contentDiv().fadeOut()
-
-  headerDiv: ->
-    $("#dock-tab-content-title-#{@id}")
+    if @settings.searchEnabled
+      @searchInput().on 'keyup', ->
+        query = $(@).val()
+        $(@).parents('article').children(':not(input)').show()
+        $(@).parents('article').children(':not(input)').not(":contains('#{query}')").hide()
 
   contents: ->
-    $("#dock-tab-content-#{@id} > .content > div")
-
-  contentDiv: ->
-    $("#dock-tab-content-#{@id} > .content")
+    $("#ac-#{@id} ~ article")
 
   searchInput: ->
-    $("#dock-tab-content-#{@id} > .content > input")
+    $("#ac-search-#{@id}")
 
-  headerHtml: ->
-    "<div id=\"dock-tab-content-title-#{@id}\" class=\"page_collapsible collapse-close\" data-tab=\"#{@id}\">#{@title()}<span></span></div>"
+  addSearch: ->
+    if @settings.searchEnabled
+      "<input type=\"text\" name=\"search\" id=\"ac-search-#{@id}\" placeholder=\"Search\" style=\"width: 100%;\">"
+    else
+      ''
 
   getHtml: ->
-    "<div id=\"dock-tab-content-#{@id}\" class=\"container dock-tab-get-contents\">
-      <div class=\"content\" style=\"display: none;\">
-        <input type=\"text\" name=\"search\" class=\"dock-tab-content-search\" placeholder=\"Search\" style=\"width: 100%;\">
-        <div data-tab=\"#{@id}\">
-        </div>
-      </div>
+    "<div>
+      <input id=\"ac-#{@id}\" name=\"accordion-#{@id}\" type=\"checkbox\" />
+      <label for=\"ac-#{@id}\">#{@title()}</label>
+      <article class=\"ac-small\">
+        #{@addSearch()}
+      </article>
     </div>"
 
   contentHtml: ->
@@ -96,14 +82,16 @@ class window.Docker
         <span class=\"slideout-menu-toggle\"></span>
       </div>
       <h3>#{@settings.title}</h3>
-      #{@tabHtml()}
+      <section class=\"ac-container\">
+        #{@tabHtml()}
+      </section>
     </div>"
 
   tabHtml: ->
     tabHtml = ''
     self = this
     $.each @tabs, (i, tab) ->
-      tabHtml += "#{tab.headerHtml()}#{tab.contentHtml()}"
+      tabHtml += "#{tab.contentHtml()}"
     tabHtml
 
   initTabs: ->
@@ -127,3 +115,5 @@ jQuery ->
   $.fn.dock.defaults =
     title: 'Dock &amp; Load Sidebar',
     tabs: []
+  $.fn.dock.tabDefaults =
+    searchEnabled: true
