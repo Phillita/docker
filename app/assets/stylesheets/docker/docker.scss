@@ -1,6 +1,37 @@
 /*
 Slidout menu
 */
+.slideout-menu.open {
+  position: fixed;
+  top: 0;
+  left: 0px;
+  width: 250px;
+  height: 100%;
+  background: #333;
+  z-index: 100;
+  transition: all .35s ease;
+
+  .slideout-menu-inner {
+    position: relative;
+    left: 250px;
+    top: 65px;
+    width: 33px;
+    height: 36px;
+    background: #333;
+    z-index: 101;
+    border-radius: 0px 5px 5px 0px;
+    transition: all .35s ease;
+    cursor: pointer;
+    span {
+      display: block;
+      width: 33px;
+      height: 37px;
+      background: image-url('docker/cog.png') center center no-repeat;
+      background-size: cover;
+    }
+  }
+}
+
 .slideout-menu {
   position: fixed;
   top: 0;
@@ -9,6 +40,7 @@ Slidout menu
   height: 100%;
   background: #333;
   z-index: 100;
+  transition: all .35s ease;
 
   .slideout-menu-inner {
     position: relative;
@@ -19,6 +51,8 @@ Slidout menu
     background: #333;
     z-index: 101;
     border-radius: 0px 5px 5px 0px;
+    transition: all .35s ease;
+    cursor: pointer;
     span {
       display: block;
       width: 10px;
@@ -35,6 +69,7 @@ Slidout menu
     background: #333;
     z-index: 101;
     border-radius: 0px 5px 5px 0px;
+    transition: all .35s ease;
     span {
       display: block;
       width: 33px;

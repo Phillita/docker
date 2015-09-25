@@ -113,27 +113,11 @@ class window.Docker
   slideMenu: ->
     $('.slideout-menu')
 
-  isOpen: ->
-    @slideMenu().hasClass('open')
-
-  slideOpen: ->
-    @slideMenu().addClass("open")
-    @slideMenu().animate
-      left: "0px"
-
-  slideClose: ->
-    @slideMenu().removeClass("open")
-    @slideMenu().animate({ left: -@slideMenu().width() }, 250)
-
   slideInit: ->
     self = this
     $('.slideout-menu-toggle').on 'click', (event) ->
       event.preventDefault()
-
-      if !self.isOpen()
-        self.slideOpen()
-      else
-        self.slideClose()
+      self.slideMenu().toggleClass('open')
 
 jQuery ->
   $.fn.extend
