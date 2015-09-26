@@ -10,7 +10,8 @@ Slidout menu
   background: #333;
   z-index: 100;
   transition: all .35s ease;
-  overflow-y: auto;
+  // Need to scroll inner div without hiding the dock toggle
+  // overflow-y: auto;
 
   .slideout-menu-inner {
     position: relative;

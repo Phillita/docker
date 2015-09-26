@@ -24,12 +24,34 @@ class window.DockerTab
 
   getContent: ->
     self = @
-    $.get @url(), (result) ->
-      $.each result, (i, res) ->
-        dataAppend = self.format()
-        $.each self.fieldNames(), (i, name) ->
-          dataAppend = dataAppend.replace("%#{i}", res[name]);
-        self.contents().append(dataAppend)
+    settings = {
+      type: @action()
+      url: @url()
+      dataType: @settings.dataType,
+      crossOrigin: true,
+      contentType: 'multipart/form-data'
+      success: (result) ->
+        $.each result, (i, res) ->
+          dataAppend = self.format()
+          $.each self.fieldNames(), (i, name) ->
+            dataAppend = dataAppend.replace("%#{i}", res[name]);
+          self.contents().append(dataAppend)
+      error: (jqXHR, textStatus, errorThrown) ->
+        alert(errorThrown + " : " + textStatus)
+    }
+
+    if @settings.authorizationEnabled
+      $.extend(settings, {
+        beforeSend: (xhr) ->
+          if self.settings.authorization.type == 'Basic'
+            xhr.setRequestHeader("Authorization", "Basic " + btoa(self.settings.authorization.username + ":" + self.settings.authorization.password))
+          else if self.settings.authorization.type == 'Token'
+            xhr.setRequestHeader("Authorization", "Token token=#{self.settings.authorization.token}")
+            xhr.setRequestHeader("Access-Control-Allow-Origin", "true")
+        }
+      )
+
+    $.ajax @url(), settings
 
   initSearch: ->
     if @settings.searchEnabled
@@ -110,10 +132,13 @@ class window.Docker
 jQuery ->
   $.fn.extend
     dock: (options) ->
-      this.each ->
-        new Docker(this, options)
+      @.each ->
+        new Docker(@, options)
   $.fn.dock.defaults =
     title: 'Dock &amp; Load Sidebar',
-    tabs: []
+    tabs: [],
+    dataType: 'json'
   $.fn.dock.tabDefaults =
-    searchEnabled: true
+    searchEnabled: true,
+    authorizationEnabled: false,
+    authorization: {}
