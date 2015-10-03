@@ -63,6 +63,13 @@ class window.DockerTab
 
     $.ajax @url(), settings
 
+  displayData: (link) ->
+    if @linkTab.action() == 'detail'
+      self = @
+      tabDetails = self.data[$(link).data('dataId')].data
+      $.each self.linkTab.fieldNames(), (i, name) ->
+        $("#ac-#{self.linkTab.id}-field-#{name}").html(tabDetails[name])
+
   initSearch: ->
     if @settings.searchEnabled
       @searchInput().on 'keyup', ->
@@ -75,9 +82,7 @@ class window.DockerTab
     $(".ac-a-#{@id}").on 'click', ->
       $("#ac-#{self.linkTab.id}").prop('checked', true)
       $("#ac-#{self.id}").prop('checked', false)
-      tabDetails = self.data[$(@).data('dataId')].data
-      $.each self.linkTab.fieldNames(), (i, name) ->
-        $("#ac-#{self.linkTab.id}-field-#{name}").html(tabDetails[name])
+      self.displayData(@)
 
   contents: ->
     $("#ac-#{@id} ~ article")
