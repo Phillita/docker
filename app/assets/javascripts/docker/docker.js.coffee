@@ -1,3 +1,6 @@
+class window.DockerTabData
+  constructor: (@id, @data) ->
+
 class window.DockerTab
   constructor: (options, @id) ->
     @settings = $.extend({}, $.fn.dock.tabDefaults, options)
@@ -17,10 +20,13 @@ class window.DockerTab
   format: ->
     @settings.format
 
-  init: ->
+  init: (linkTab) ->
     if @action() == 'get'
+      @data = []
+      @linkTab = linkTab
       @getContent()
       @initSearch()
+      # @initLink()
 
   getContent: ->
     self = @
@@ -28,14 +34,18 @@ class window.DockerTab
       type: @action()
       url: @url()
       dataType: @settings.dataType,
-      crossOrigin: true,
-      contentType: 'multipart/form-data'
       success: (result) ->
-        $.each result, (i, res) ->
+        self.resultObjects = result
+        $.each result, (result_index, res) ->
+          self.data.push(new DockerTabData(result_index, res))
           dataAppend = self.format()
-          $.each self.fieldNames(), (i, name) ->
-            dataAppend = dataAppend.replace("%#{i}", res[name]);
-          self.contents().append(dataAppend)
+          $.each self.fieldNames(), (field_index, name) ->
+            dataAppend = dataAppend.replace("%#{field_index}", res[name]);
+          if self.settings.linkTo.length > 0
+            self.contents().append("<a class=\"ac-a-#{self.id}\" data-data-id=\"#{result_index}\">#{dataAppend}</a>")
+          else
+            self.contents().append(dataAppend)
+        self.initLink()
       error: (jqXHR, textStatus, errorThrown) ->
         alert(errorThrown + " : " + textStatus)
     }
@@ -60,6 +70,15 @@ class window.DockerTab
         $(@).parents('article').children(':not(input)').show()
         $(@).parents('article').children(':not(input)').not(":contains('#{query}')").hide()
 
+  initLink: ->
+    self = @
+    $(".ac-a-#{@id}").on 'click', ->
+      $("#ac-#{self.linkTab.id}").prop('checked', true)
+      $("#ac-#{self.id}").prop('checked', false)
+      tabDetails = self.data[$(@).data('dataId')].data
+      $.each self.linkTab.fieldNames(), (i, name) ->
+        $("#ac-#{self.linkTab.id}-field-#{name}").html(tabDetails[name])
+
   contents: ->
     $("#ac-#{@id} ~ article")
 
@@ -71,6 +90,22 @@ class window.DockerTab
       "<input type=\"text\" name=\"search\" id=\"ac-search-#{@id}\" placeholder=\"Search\" style=\"width: 100%;\">"
     else
       ''
+
+  fieldHtml: ->
+    self = @
+    fieldHtml = ''
+    $.each @fieldNames(), (i, name) ->
+      fieldHtml += "<h4 style=\"text-transform: capitalize;\">#{name}</h4><p id=\"ac-#{self.id}-field-#{name}\"></p>"
+    fieldHtml
+
+  detailHtml: ->
+    "<div>
+      <input id=\"ac-#{@id}\" name=\"accordion-#{@id}\" type=\"checkbox\" />
+      <label for=\"ac-#{@id}\">#{@title()}</label>
+      <article class=\"ac-small\">
+        #{@fieldHtml()}
+      </article>
+    </div>"
 
   getHtml: ->
     "<div>
@@ -84,6 +119,8 @@ class window.DockerTab
   contentHtml: ->
     if @action() == 'get'
       @getHtml()
+    else if @action() == 'detail'
+      @detailHtml()
     # else if tab.action == 'post'
 
 class window.Docker
@@ -111,20 +148,29 @@ class window.Docker
 
   tabHtml: ->
     tabHtml = ''
-    self = this
+    self = @
     $.each @tabs, (i, tab) ->
       tabHtml += "#{tab.contentHtml()}"
     tabHtml
 
   initTabs: ->
+    self = @
     $.each @tabs, (i, tab) ->
-      tab.init()
+      if tab.settings.linkTo.length > 0
+        matches = $.grep self.tabs, (e) ->
+          e.title() == tab.settings.linkTo
+        if matches.length == 0
+          tab.init()
+        else if matches.length > 0
+          tab.init(matches[0])
+      else
+        tab.init()
 
   slideMenu: ->
     $('.slideout-menu')
 
   slideInit: ->
-    self = this
+    self = @
     $('.slideout-menu-toggle').on 'click', (event) ->
       event.preventDefault()
       self.slideMenu().toggleClass('open')
@@ -139,6 +185,12 @@ jQuery ->
     tabs: [],
     dataType: 'json'
   $.fn.dock.tabDefaults =
-    searchEnabled: true,
+    title: '',
+    action: '',
+    url: '',
+    fieldNames: [],
+    format: '',
+    linkTo: '',
+    searchEnabled: false,
     authorizationEnabled: false,
     authorization: {}

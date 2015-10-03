@@ -3,12 +3,18 @@ jQuery ->
     title: 'My First Dock',
     tabs: [
       {
-        title: 'Test Server',
+        title: 'Posts',
         action: 'get',
         url: 'http://jsonplaceholder.typicode.com/posts',
-        fieldNames: ['title', 'body'],
-        format: '<p>Title: %0<br>Body: %1</p>',
+        fieldNames: ['title'],
+        format: '<p>%0</p>',
         searchEnabled: true,
+        linkTo: 'Post Details'
+      }
+      {
+        title: 'Post Details',
+        action: 'detail',
+        fieldNames: ['id', 'userId', 'title', 'body']
       }
     ]
   )
